@@ -1,0 +1,10 @@
+[Unit]
+Description=Pull, test and deploy the Agent Games agent from GitHub main
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/agent-autodeploy
+TimeoutStartSec=900
+Nice=10
