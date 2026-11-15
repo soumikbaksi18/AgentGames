@@ -1,0 +1,27 @@
+[Unit]
+Description=Agent Games Proof Gatekeeper agent
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=agent
+Group=agent
+WorkingDirectory=/opt/agent/app
+Environment=NODE_ENV=production
+Environment=AGENT_ROOT=/opt/agent/app
+Environment=DATA_DIR=/opt/agent/data
+# Secrets live ONLY in this root-readable file on the server (chmod 600).
+EnvironmentFile=/etc/agentgames/agent.env
+ExecStart=/usr/bin/node dist/src/index.js
+Restart=always
+RestartSec=2
+# Hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/opt/agent/data
+
+[Install]
+WantedBy=multi-user.target

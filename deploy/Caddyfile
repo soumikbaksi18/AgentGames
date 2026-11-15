@@ -1,0 +1,14 @@
+# Caddy terminates TLS (automatic Let's Encrypt cert) and proxies to the agent.
+# __AGENT_HOST__ is replaced by deploy.sh, e.g. 3-6-185-54.sslip.io
+__AGENT_HOST__ {
+	encode zstd gzip
+	reverse_proxy 127.0.0.1:8080 {
+		transport http {
+			response_header_timeout 59s
+		}
+	}
+	log {
+		output file /var/log/caddy/agent-access.log
+		format json
+	}
+}
