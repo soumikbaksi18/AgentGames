@@ -92,6 +92,8 @@ export function createServer(): http.Server {
     }
 
     if (type === GATEKEEPER_TYPE) {
+      // Task envelopes carry no secrets; keep them for debugging/disputes.
+      log.info("task received", { envelope: msg });
       try {
         const out = await handleTask(msg);
         log.info("task answered", {

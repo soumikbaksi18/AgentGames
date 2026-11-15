@@ -1,6 +1,9 @@
 import { config, validateConfig } from "./config.js";
 import { log, errMsg } from "./logger.js";
 import { createServer } from "./server.js";
+import { initStore } from "./store.js";
+import { assertArtifacts, warmUp } from "./prover.js";
+import { kurierEnabled } from "./kurier.js";
 
 try {
   validateConfig();
@@ -15,6 +18,14 @@ try {
   }
 }
 
+try {
+  assertArtifacts();
+  initStore();
+} catch (e) {
+  log.error("startup failed", { err: errMsg(e) });
+  process.exit(1);
+}
+
 const server = createServer();
 // Keep-alive outlives typical client reuse. The 60s task deadline itself is
 // enforced inside the task handler (fail closed), not by these socket timers.
@@ -23,7 +34,16 @@ server.headersTimeout = 66_000;
 server.requestTimeout = 58_000;
 
 server.listen(config.port, config.host, () => {
-  log.info("agent listening", { host: config.host, port: config.port, path: config.agentPath });
+  log.info("agent listening", {
+    host: config.host,
+    port: config.port,
+    path: config.agentPath,
+    taskIdEncoding: config.taskIdEncoding,
+    kurier: kurierEnabled() ? config.kurierNetwork : "disabled",
+  });
+  warmUp()
+    .then((ms) => log.info("prover warm", { ms }))
+    .catch((e) => log.error("prover warm-up FAILED", { err: errMsg(e) }));
 });
 
 function shutdown(sig: string): void {
