@@ -1,0 +1,15 @@
+# Secrets — never commit
+.env
+.env.*
+!.env.example
+
+# Dependencies / build output
+node_modules/
+dist/
+
+# Runtime state (seen-set, response cache, audit log)
+data/
+
+# OS / editor
+.DS_Store
+*.log
