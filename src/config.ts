@@ -49,6 +49,9 @@ export const config = {
   // Not documented by the platform — confirm with a practice task.
   taskIdEncoding: (str("TASK_ID_ENCODING", "keccak") as TaskIdEncoding),
   maxConcurrentProofs: int("MAX_CONCURRENT_PROOFS", 2),
+  // "observe": only record whether proof_tx matches the task's own id.
+  // "enforce": additionally treat a FOREIGN proof_tx as PROOF_REUSED.
+  reuseHeuristic: (str("REUSE_HEURISTIC", "observe") as "observe" | "enforce"),
 
   // --- zkVerify via Kurier (optional; never blocks a response) ---
   kurierNetwork: (str("KURIER_NETWORK", "testnet") as KurierNetwork),
@@ -76,6 +79,9 @@ export function validateConfig(): void {
   }
   if (!["keccak", "sha256", "hexdigits"].includes(config.taskIdEncoding)) {
     throw new Error("TASK_ID_ENCODING must be keccak | sha256 | hexdigits");
+  }
+  if (!["observe", "enforce"].includes(config.reuseHeuristic)) {
+    throw new Error("REUSE_HEURISTIC must be observe | enforce");
   }
   if (!["testnet", "mainnet"].includes(config.kurierNetwork)) {
     throw new Error("KURIER_NETWORK must be testnet | mainnet");

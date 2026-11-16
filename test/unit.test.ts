@@ -2,7 +2,7 @@ import { test, after } from "node:test";
 import assert from "node:assert/strict";
 import { createHmac } from "node:crypto";
 import { verifySignature, sign } from "../src/hmac.js";
-import { parseTask } from "../src/envelope.js";
+import { parseTask, proofTxRelation } from "../src/envelope.js";
 import { evaluateConditions } from "../src/policy.js";
 import { taskIdToField, hexishToField, FIELD_P } from "../src/field.js";
 import { prove, CircuitRejectedError, DECISION_SIGNAL_INDEX, shutdownProver } from "../src/prover.js";
@@ -76,4 +76,12 @@ test("circuit agrees with policy on every case, and refuses the opposite decisio
     assert.equal(out.publicSignals[DECISION_SIGNAL_INDEX], pol.approve ? "1" : "0", c.name);
     await assert.rejects(prove(t.input, tid, !pol.approve), CircuitRejectedError, `${c.name}: circuit accepted wrong decision`);
   }
+});
+
+test("proof_tx relation: derived / foreign / unknown", () => {
+  const id = "practice_78e53e6b-eec2-4206-962b-2a2266346076";
+  assert.equal(proofTxRelation(id, "0x78e53e6beec24206962b2a2266346076"), "derived");
+  assert.equal(proofTxRelation(id, "0x78E53E6BEEC24206962B2A2266346076"), "derived");
+  assert.equal(proofTxRelation(id, "0x5f92d7599f1046a0acfc4f16b09ea1ba"), "foreign");
+  assert.equal(proofTxRelation("gk_24_9d1", "0xabc"), "unknown");
 });

@@ -95,6 +95,24 @@ export function parseTask(msg: unknown): ParsedTask {
   }
 }
 
+export type ProofTxRelation = "derived" | "foreign" | "unknown";
+
+/**
+ * Observed in practice: a fresh task's proof_tx is "0x" + the hex of its own
+ * task id (task "practice_78e53e6b-eec2-..." -> proof_tx "0x78e53e6beec2...").
+ *   derived  proof_tx is this task's own reference
+ *   foreign  task id carries a hex id, but proof_tx belongs to something else
+ *   unknown  task id has no recognisable hex id (no inference possible)
+ */
+export function proofTxRelation(taskId: string, proofTx: string): ProofTxRelation {
+  const tail = taskId.includes("_") ? taskId.slice(taskId.lastIndexOf("_") + 1) : taskId;
+  const hex = tail.replace(/-/g, "").toLowerCase();
+  if (!/^[0-9a-f]{16,}$/.test(hex)) return "unknown";
+  const tx = proofTx.trim().toLowerCase();
+  if (!/^0x[0-9a-f]+$/.test(tx)) return "unknown";
+  return tx === "0x" + hex ? "derived" : "foreign";
+}
+
 /** Normalised key for the proof-reference seen-set (case-insensitive hex). */
 export function proofRefKey(proofTx: string): string {
   const s = proofTx.trim();

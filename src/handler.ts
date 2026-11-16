@@ -5,7 +5,7 @@
 //   -> background zkVerify submission (never blocks the response)
 import { config } from "./config.js";
 import { log, errMsg } from "./logger.js";
-import { parseTask, proofRefKey, EnvelopeError, type ParsedTask } from "./envelope.js";
+import { parseTask, proofRefKey, proofTxRelation, EnvelopeError, type ParsedTask } from "./envelope.js";
 import { evaluateConditions } from "./policy.js";
 import { taskIdToField } from "./field.js";
 import { prove, CircuitRejectedError, type Groth16Proof } from "./prover.js";
@@ -103,10 +103,13 @@ async function decide(task: ParsedTask): Promise<TaskResponse> {
   // Record every proof reference we see. Reuse only matters when all field
   // checks pass: a field-level trap is still provably rejected by the circuit.
   const reuse = checkAndMarkProofRef(proofRefKey(task.proofTx), task.taskId);
+  const relation = proofTxRelation(task.taskId, task.proofTx);
+  const heuristicReused = config.reuseHeuristic === "enforce" && relation === "foreign";
+  log.info("proof_tx relation", { task_id: task.taskId, relation, seenBefore: reuse.reused, mode: config.reuseHeuristic });
 
-  const base = { task_id: task.taskId, mode: task.mode, proof_tx: task.proofTx, checks: policy.checks };
+  const base = { task_id: task.taskId, mode: task.mode, proof_tx: task.proofTx, proof_tx_relation: relation, checks: policy.checks };
 
-  if (policy.approve && reuse.reused) {
+  if (policy.approve && (reuse.reused || heuristicReused)) {
     // Not provable: the circuit would only accept decision=1 for these fields.
     // The platform excludes PROOF_REUSED tasks from proof scoring.
     const r: TaskResponse = { decision: "REJECT", reason_code: "PROOF_REUSED", proof_tx: task.proofTx };
