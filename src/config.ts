@@ -47,7 +47,7 @@ export const config = {
   vkeyPath: path.join(root, "circuits", "verification_key.json"),
   // How the string task_id is mapped to the circuit's `taskId` field element.
   // Not documented by the platform — confirm with a practice task.
-  taskIdEncoding: (str("TASK_ID_ENCODING", "keccak") as TaskIdEncoding),
+  taskIdEncoding: (str("TASK_ID_ENCODING", "sha256") as TaskIdEncoding),
   maxConcurrentProofs: int("MAX_CONCURRENT_PROOFS", 2),
   // "observe": only record whether proof_tx matches the task's own id.
   // "enforce": additionally treat a FOREIGN proof_tx as PROOF_REUSED.

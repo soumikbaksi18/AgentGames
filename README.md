@@ -63,4 +63,4 @@ SSH_KEY=... AGENT_IP=... deploy/set-secret.sh KURIER_API_KEY
 
 ## Open item
 
-The platform does not document how the string `task_id` maps to the circuit's `taskId` field. Default is `keccak256(utf8(task_id)) mod p` (`TASK_ID_ENCODING=keccak`); `sha256` and `hexdigits` are available. Confirm on the first practice task whether proofs show as verified.
+The platform does not document how the string `task_id` maps to the circuit's `taskId` field. Default is `sha256(utf8(task_id)) mod r` (`TASK_ID_ENCODING=sha256`), matching a peer agent whose Round 4 proofs verified; keccak proofs were rejected in competition. `keccak` and `hexdigits` remain available. Confirm on the first practice task whether proofs show as verified.
