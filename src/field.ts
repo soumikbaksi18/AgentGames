@@ -6,8 +6,9 @@ import { createHash } from "node:crypto";
 import { keccak_256 } from "@noble/hashes/sha3";
 import type { TaskIdEncoding } from "./config.js";
 
+/** BN254 (alt_bn128) scalar field order r — pinned to ffjavascript's curve by a unit test. */
 export const FIELD_P =
-  21888242871839275222246208961951241494185791491426741934094400413702057459713n;
+  21888242871839275222246405745257275088548364400416034343698204186575808495617n;
 
 const mod = (x: bigint): bigint => ((x % FIELD_P) + FIELD_P) % FIELD_P;
 

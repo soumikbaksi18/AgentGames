@@ -9,3 +9,9 @@ declare module "snarkjs" {
     verify(vkey: unknown, publicSignals: string[], proof: unknown, logger?: unknown): Promise<boolean>;
   };
 }
+
+declare module "circom_runtime" {
+  export function WitnessCalculatorBuilder(code: Uint8Array): Promise<{
+    calculateWitness(input: Record<string, unknown>, sanityCheck: boolean): Promise<bigint[]>;
+  }>;
+}

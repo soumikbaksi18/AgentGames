@@ -1,6 +1,8 @@
 import { test, after } from "node:test";
 import assert from "node:assert/strict";
 import { createHmac } from "node:crypto";
+import { createRequire } from "node:module";
+import fs from "node:fs";
 import { verifySignature, sign } from "../src/hmac.js";
 import { parseTask, proofTxRelation } from "../src/envelope.js";
 import { evaluateConditions } from "../src/policy.js";
@@ -84,4 +86,24 @@ test("proof_tx relation: derived / foreign / unknown", () => {
   assert.equal(proofTxRelation(id, "0x78E53E6BEEC24206962B2A2266346076"), "derived");
   assert.equal(proofTxRelation(id, "0x5f92d7599f1046a0acfc4f16b09ea1ba"), "foreign");
   assert.equal(proofTxRelation("gk_24_9d1", "0xabc"), "unknown");
+});
+
+test("public signals equal circom's own encoding of the raw task values", { timeout: 60_000 }, async () => {
+  // Feed the RAW hex strings straight to the witness calculator (circom reduces
+  // mod r itself) and check our pre-encoded signals are identical.
+  const { WitnessCalculatorBuilder } = createRequire(import.meta.url)("circom_runtime") as typeof import("circom_runtime");
+  const wc = await WitnessCalculatorBuilder(fs.readFileSync("circuits/gatekeeper.wasm"));
+  const vk = "0x6b79c6012a6d8651f3e13bc4d2a20370280ab49700c90c5316d4168bfbad77b0";
+  const rcp = "0x08ef8a09cd30776547ce5ba0fa39cbf79319304e";
+  const raw = { registeredVkHash: vk, proofVkHash: vk, minimum: "1000", publicBalance: "2649",
+    expiryBlock: "8446251", currentBlock: "8436251", recipient: rcp, conditionRecipient: rcp,
+    amount: "1126", maxTransfer: "1390", decision: "1", salt: "7", taskId: "5" };
+  // The circuit's own prime must equal ours (the platform VK hash exceeds it).
+  assert.equal((wc as unknown as { prime: bigint }).prime, FIELD_P);
+  assert.ok(BigInt(vk) > FIELD_P);
+  const w = await wc.calculateWitness(raw, true);
+  assert.equal(String(w[2]), hexishToField(vk, "vk").toString());
+  assert.equal(String(w[3]), hexishToField(vk, "vk").toString());
+  assert.equal(String(w[8]), hexishToField(rcp, "r").toString());
+  assert.equal(String(w[9]), hexishToField(rcp, "r").toString());
 });
