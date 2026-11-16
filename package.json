@@ -6,7 +6,7 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/src/index.js",
     "dev": "tsx watch src/index.ts",
-    "test": "node --import tsx --test test/*.test.ts",
+    "test": "node --import tsx --test --test-force-exit test/*.test.ts",
     "harness": "tsx test/harness.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
